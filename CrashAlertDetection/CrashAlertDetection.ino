@@ -1,92 +1,61 @@
 #include <WiFi.h>
-#include <FirebaseESP32.h>
-#include <Wire.h>
-#include <Adafruit_MPU6050.h>
-#include <Adafruit_Sensor.h>
-#include <TinyGPSPlus.h>
-#include <HardwareSerial.h>
+#include <Firebase_ESP_Client.h>
 
-// WiFi credentials
-#define WIFI_SSID "harith's iPhone"
+// Replace with your Wi-Fi credentials
+#define WIFI_SSID "harith"
 #define WIFI_PASSWORD "harith1021"
 
-// Firebase credentials
-#define FIREBASE_HOST "crashalertsystem-1c13f.firebaseio.com"
-#define FIREBASE_AUTH "yaAZORCdfBLtrrEJTqZt2w3erkMCfaVFbcNkx0Jh"
+// Replace with your Firebase credentials
+#define API_KEY "AIzaSyAxRvMXqnP5O5Pf4bEddbsvx-FDjBkoN1w"
+#define DATABASE_URL "https://crashalertsystem-1c13f-default-rtdb.asia-southeast1.firebasedatabase.app"  // e.g. https://project-id-default-rtdb.asia-southeast1.firebasedatabase.app
 
-// GPS module
-HardwareSerial gpsSerial(1);
-TinyGPSPlus gps;
-
-// MPU6050
-Adafruit_MPU6050 mpu;
-
-// Firebase object
+// Firebase objects
 FirebaseData fbdo;
+FirebaseAuth auth;
+FirebaseConfig config;
+
+void connectWiFi() {
+  Serial.print("Connecting to Wi-Fi");
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to Wi-Fi");
+}
+
+void setupFirebase() {
+  config.api_key = API_KEY;
+  config.database_url = DATABASE_URL;
+
+  // Optional: print token status updates
+  config.token_status_callback = [](TokenInfo info) {
+    Serial.printf("Token Status: %s\n", info.status == token_status_ready ? "Ready" : "Not ready");
+  };
+
+  // Start Firebase with config and auth
+  Firebase.begin(&config, &auth);
+  Firebase.reconnectWiFi(true);
+
+  // Use anonymous signup
+  if (Firebase.signUp(&config, &auth, "", "")) {
+    Serial.println("✔️ Firebase anonymous signup successful");
+  } else {
+    Serial.printf("❌ Signup failed: %s\n", config.signer.signupError.message.c_str());
+  }
+}
 
 void setup() {
   Serial.begin(115200);
-  
-  // Start GPS module
-  gpsSerial.begin(9600, SERIAL_8N1, 16, 17); // RX, TX pins
-  
-  // Start MPU6050
-  if (!mpu.begin()) {
-    Serial.println("Failed to find MPU6050");
-    while (1);
-  }
-
-  // Connect WiFi
-  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("Connecting to Wi-Fi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500); Serial.print(".");
-  }
-  Serial.println("\nConnected.");
-
-  // Firebase begin
-  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
-  Firebase.reconnectWiFi(true);
+  connectWiFi();
+  setupFirebase();
 }
 
 void loop() {
-  sensors_event_t a, g, temp;
-  mpu.getEvent(&a, &g, &temp);
-
-  while (gpsSerial.available()) {
-    gps.encode(gpsSerial.read());
+  if (Firebase.RTDB.setInt(&fbdo, "/test/value", millis())) {
+    Serial.println("✅ Data uploaded");
+  } else {
+    Serial.printf("❌ Upload failed: %s\n", fbdo.errorReason().c_str());
   }
-
-  // Simple crash detection logic
-  float accMagnitude = sqrt(a.acceleration.x * a.acceleration.x +
-                            a.acceleration.y * a.acceleration.y +
-                            a.acceleration.z * a.acceleration.z);
-
-  Serial.print("Accel Magnitude: ");
-  Serial.println(accMagnitude);
-
-  // Detect strong sudden acceleration
-  if (accMagnitude > 30.0) {  // adjust threshold as needed
-    Serial.println("🚨 Crash Detected!");
-
-    if (gps.location.isValid()) {
-      float lat = gps.location.lat();
-      float lng = gps.location.lng();
-
-      // Send to Firebase
-      String path = "/alerts/" + String(millis());
-      Firebase.setFloat(fbdo, path + "/latitude", lat);
-      Firebase.setFloat(fbdo, path + "/longitude", lng);
-      Firebase.setFloat(fbdo, path + "/acceleration", accMagnitude);
-      Firebase.setString(fbdo, path + "/status", "Crash Detected");
-
-      Serial.println("📡 Data Sent to Firebase.");
-    } else {
-      Serial.println("Waiting for valid GPS data...");
-    }
-
-    delay(5000);  // delay to avoid spamming
-  }
-
-  delay(1000);  // regular loop delay
+  delay(5000); // every 5 seconds
 }
