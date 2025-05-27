@@ -7,12 +7,12 @@
 #include <HardwareSerial.h>
 
 // WiFi credentials
-#define WIFI_SSID "YOUR_WIFI_NAME"
-#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
+#define WIFI_SSID "harith's iPhone"
+#define WIFI_PASSWORD "harith1021"
 
 // Firebase credentials
-#define FIREBASE_HOST "your-project-id.firebaseio.com"
-#define FIREBASE_AUTH "your_firebase_database_secret"
+#define FIREBASE_HOST "crashalertsystem-1c13f.firebaseio.com"
+#define FIREBASE_AUTH "yaAZORCdfBLtrrEJTqZt2w3erkMCfaVFbcNkx0Jh"
 
 // GPS module
 HardwareSerial gpsSerial(1);
