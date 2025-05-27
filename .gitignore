@@ -1,2 +1,35 @@
-.vscode/c_cpp_properties.json
-CrashTelegramMsg/CrashTelegramMsg.ino
+# Node modules (if you use Node.js for any tooling)
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Dependency directories
+jspm_packages/
+
+# Build output (if you have any build step)
+dist/
+build/
+
+# Firebase config files (optional, if you want to keep them private)
+firebase.json
+.firebaserc
+
+# IDE/editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables (if you use any)
+.env
+.env.local
+.env.*.local
