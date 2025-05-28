@@ -1,6 +1,8 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+// Import Firebase functions needed
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
 
+// Your Firebase config object
 const firebaseConfig = {
   apiKey: "AIzaSyAxRvMXqnP5O5Pf4bEddbsvx-FDjBkoN1w",
   authDomain: "crashalertsystem-1c13f.firebaseapp.com",
@@ -11,19 +13,27 @@ const firebaseConfig = {
   appId: "1:663104449163:web:3bc4fae03c835d616ec28e"
 };
 
+// Initialize Firebase app and database
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// Select the HTML list element
 const crashList = document.getElementById('crashList');
 
-onValue(ref(db, 'crashes'), (snapshot) => {
-  crashList.innerHTML = '';
+// Reference the "crashes" node in your Realtime Database
+const crashesRef = ref(db, 'crashes');
 
-  snapshot.forEach((childSnapshot) => {
+// Listen for value changes and update UI
+onValue(crashesRef, (snapshot) => {
+  crashList.innerHTML = '';
+  snapshot.forEach(childSnapshot => {
     const data = childSnapshot.val();
-    const timestamp = new Date(Number(childSnapshot.key)).toLocaleString();
     const li = document.createElement('li');
-    li.textContent = `📅 ${timestamp} | ⚡ Accel: ${data.acceleration} m/s²`;
+    li.textContent = `Time: ${new Date(+childSnapshot.key).toLocaleString()} | Accel: ${data.acceleration} m/s²`;
     crashList.appendChild(li);
   });
 });
+
+
+
+
