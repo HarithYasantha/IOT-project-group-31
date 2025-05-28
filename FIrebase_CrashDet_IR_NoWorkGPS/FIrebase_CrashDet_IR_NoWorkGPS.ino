@@ -21,7 +21,7 @@ FirebaseConfig config;
 
 // --- MPU6050 Setup ---
 Adafruit_MPU6050 mpu;
-const float CRASH_THRESHOLD = 13.0; // m/s²
+const float CRASH_THRESHOLD = 10.0; // m/s²
 
 // --- GPS Setup ---
 TinyGPSPlus gps;
@@ -29,7 +29,7 @@ TinyGPSPlus gps;
 #define GPS_TX 17
 
 // --- IR Sensor Setup ---
-#define IR_PIN 19  // D19
+#define IR_PIN 15  // D19
 bool helmetOn = false;
 
 void connectWiFi() {

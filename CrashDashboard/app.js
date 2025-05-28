@@ -1,8 +1,8 @@
-// Import Firebase functions needed
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-// Your Firebase config object
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAxRvMXqnP5O5Pf4bEddbsvx-FDjBkoN1w",
   authDomain: "crashalertsystem-1c13f.firebaseapp.com",
@@ -13,27 +13,32 @@ const firebaseConfig = {
   appId: "1:663104449163:web:3bc4fae03c835d616ec28e"
 };
 
-// Initialize Firebase app and database
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
 
-// Select the HTML list element
+// DOM element
 const crashList = document.getElementById('crashList');
 
-// Reference the "crashes" node in your Realtime Database
-const crashesRef = ref(db, 'crashes');
+// Sign in anonymously
+signInAnonymously(auth)
+  .then(() => {
+    console.log("✅ Signed in anonymously");
 
-// Listen for value changes and update UI
-onValue(crashesRef, (snapshot) => {
-  crashList.innerHTML = '';
-  snapshot.forEach(childSnapshot => {
-    const data = childSnapshot.val();
-    const li = document.createElement('li');
-    li.textContent = `Time: ${new Date(+childSnapshot.key).toLocaleString()} | Accel: ${data.acceleration} m/s²`;
-    crashList.appendChild(li);
+    // Now safe to listen to DB
+    const crashesRef = ref(db, 'crashes');
+    onValue(crashesRef, (snapshot) => {
+      crashList.innerHTML = '';
+      snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const li = document.createElement('li');
+        li.textContent = `Time: ${new Date(+childSnapshot.key).toLocaleString()} | Accel: ${data.acceleration} m/s²`;
+        crashList.appendChild(li);
+      });
+    });
+
+  })
+  .catch((error) => {
+    console.error("❌ Auth error:", error);
   });
-});
-
-
-
-
